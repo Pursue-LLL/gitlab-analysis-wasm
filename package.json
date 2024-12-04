@@ -1,0 +1,29 @@
+{
+  "name": "@gogors/gitlab-analysis-wasm",
+  "version": "1.0.0",
+  "description": "GitLab analysis tool using WebAssembly",
+  "main": "pkg/gitlab_analysis_wasm.js",
+  "types": "pkg/gitlab_analysis_wasm.d.ts",
+  "module": "pkg/gitlab_analysis_wasm.js",
+  "type": "module",
+  "scripts": {
+    "build": "wasm-pack build --target web --features browser",
+    "serve": "http-server . -p 8080 -o /examples/index.html"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "files": [
+    "pkg/**/*"
+  ],
+  "author": {
+    "name": "YuluLiu",
+    "email": "yululiu2018@gmail.com"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+
+  "repository": ""
+}
