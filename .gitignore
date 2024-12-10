@@ -17,3 +17,5 @@ Cargo.lock
 .cargo
 
 .DS_Store
+
+/pkg

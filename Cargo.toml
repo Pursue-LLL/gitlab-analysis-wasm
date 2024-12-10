@@ -5,6 +5,10 @@ version = "0.1.0"
 edition = "2021"
 description = "GitLab 代码分析工具的 WebAssembly 模块"
 
+# 添加 wasm-pack 的配置
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-O4']  # 最高级别优化
+
 [lib]
 crate-type = ["cdylib"]
 

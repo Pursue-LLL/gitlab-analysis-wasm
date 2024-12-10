@@ -1,10 +1,10 @@
 # GitLab Analysis WASM
 
-基于 WebAssembly 的 GitLab 代码分析工具，用于分析团队成员的代码提交情况。
+基于 WebAssembly 的 GitLab 代码分析工具，用于生成详细的GitLab代码统计报告。
 
 ## 功能特点
 
-- 🚀 使用 WebAssembly 实现高性能分析
+- 🚀 基于Rust开发，使用 WebAssembly 实现高性能分析
 - 📊 统计代码提交数据（新增、删除、修改行数等）
 - 👥 按作者统计项目贡献
 - 📈 生成详细的代码统计报告
@@ -27,25 +27,25 @@ const config = {
   gitlab_api: 'http://gitlab.xxx.cn/api/v4',
   gitlab_token: "your-gitlab-token",
   group_id: 'your-group-id',
-  
+
   // 时间范围配置
-  start_date: '2024-01-01',
+  start_date: '2024-11-01',
   end_date: '2024-12-31',
-  
+
   // 项目配置
   projects_num: 100,
   excluded_projects: ['project1', 'project2'],
-  
-  // 文件类型配置
+
+  // 文件类型配置，如前端常用配置
   valid_extensions: [
-    '.js', '.cjs', '.ts', '.jsx', '.tsx', 
-    '.css', '.scss', '.sass', '.html', 
-    '.sh', '.vue', '.svelte', '.rs'
+    '.js', '.cjs', '.ts', '.jsx', '.tsx',
+    '.css', '.scss', '.sass', '.html',
+    '.sh', '.vue', '.svelte'
   ],
-  
+
   // 并发处理数
   max_concurrent_requests: 30,
-  
+
   // 过滤配置
   ignored_paths: [
     "dist", "node_modules/", "build/",
@@ -127,7 +127,7 @@ interface FailureRecord {
 1. GitLab Token 权限要求：
    - 需要 `read_api` 权限
    - 需要 `read_repository` 权限
-   
+
 2. 性能优化建议：
    - 根据接口qps适当调整 `max_concurrent_requests` 值
    - 使用 `excluded_projects` 排除不需要分析的项目
@@ -150,3 +150,18 @@ npm run build
 # 启动示例
 npm run serve
 ```
+
+## 效果展示
+
+结合前端框架可以搭建自己的分析页面
+
+分析提交代码
+![image.png](https://s2.loli.net/2024/12/05/yc4WxZhjMlpknFt.png)
+
+
+![image-1.png](https://s2.loli.net/2024/12/05/asmZhk1gSWyJVn7.png)
+
+分析提交记录
+![image-2.png](https://s2.loli.net/2024/12/05/HzIRdYKPZSquT3U.png)
+
+
