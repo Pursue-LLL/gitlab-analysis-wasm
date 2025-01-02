@@ -1,29 +1,15 @@
 {
-  "name": "@gogors/gitlab-analysis-wasm",
-  "version": "1.0.1",
+  "name": "gitlab-analysis-wasm",
+  "version": "1.0.0",
   "description": "GitLab analysis tool using WebAssembly",
   "type": "module",
   "scripts": {
-    "build": "wasm-pack build --target web --features browser && node scripts/update-pkg.js",
+    "build": "wasm-pack build --target web --scope gogors",
     "serve": "http-server . -p 8080 -o /examples/index.html",
-    "prepublishOnly": "echo \"❌ 该包不能在根目录发布！ ⚠️  请进入 pkg 目录后再发布：\" && exit 1"
+    "pub": "npm run build && wasm-pack publish",
+    "prepublishOnly": "echo \"❌ 请使用 npm run pub 发布\" && exit 1"
   },
-  "files": [
-    "gitlab_analysis_wasm_bg.wasm",
-    "gitlab_analysis_wasm.js",
-    "gitlab_analysis_wasm.d.ts",
-    "README.md"
-  ],
   "devDependencies": {
     "http-server": "^14.1.1"
-  },
-  "author": {
-    "name": "YuluLiu",
-    "email": "yululiu2018@gmail.com"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org",
-    "access": "public"
-  },
-  "repository": "git+https://github.com/Pursue-LLL/gitlab-analysis-wasm.git"
+  }
 }

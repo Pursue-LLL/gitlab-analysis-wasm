@@ -1,5 +1,7 @@
+// 仅支持 web 环境
+
 use futures::future::join_all;
-use js_sys::{Array, Promise};
+use js_sys::{Array, Promise, Date, Object, Reflect};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -7,7 +9,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
+use web_sys::{Request, RequestInit, RequestMode, Response, console, AbortController, Headers, window};
 
 // === 配置相关类型 ===
 #[derive(Serialize, Deserialize)]
@@ -173,17 +175,17 @@ static MERGE_BRANCH_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"Merge branch '([
 
 // === 实现部分 ===
 // 通用的请求构建函数
-fn build_request(config: &RequestConfig) -> Result<(Request, web_sys::AbortController), JsValue> {
+fn build_request(config: &RequestConfig) -> Result<(Request, AbortController), JsValue> {
     let opts = RequestInit::new();
     opts.set_method("GET");
     opts.set_mode(RequestMode::Cors);
 
-    let headers = web_sys::Headers::new()?;
+    let headers = Headers::new()?;
     headers.append("Private-Token", &config.token)?;
     headers.append("Content-Type", "application/json")?;
     opts.set_headers(&headers);
 
-    let abort_controller = web_sys::AbortController::new()?;
+    let abort_controller = AbortController::new()?;
     opts.set_signal(Some(&abort_controller.signal()));
 
     let request = Request::new_with_str_and_init(&config.url, &opts)?;
@@ -216,8 +218,8 @@ fn log_request_error(
         RequestError::Network(msg) => format!("网络错误: {}", msg),
     };
 
-    web_sys::console::error_1(&format!("[请求失败] 耗时: {}ms", duration).into());
-    web_sys::console::error_1(&format!("错误信息: {}", error_msg).into());
+    console::error_1(&format!("[请求失败] 耗时: {}ms", duration).into());
+    console::error_1(&format!("错误信息: {}", error_msg).into());
 
     if retry_count >= config.retries {
         let failure_record = FailureRecord {
@@ -239,14 +241,14 @@ fn log_request_error(
 async fn handle_response(
     response: Result<JsValue, JsValue>,
     start_time: &f64,
-    abort_controller: &web_sys::AbortController,
+    abort_controller: &AbortController,
     config: &RequestConfig,
     retry_count: &u32,
     failure_stats: &Arc<Mutex<Vec<FailureRecord>>>,
     project_name: Option<String>,
     author: Option<String>,
 ) -> Result<ResponseResult, JsValue> {
-    let end_time = js_sys::Date::now();
+    let end_time = Date::now();
     let duration = end_time - start_time;
 
     match response {
@@ -254,7 +256,7 @@ async fn handle_response(
             if let Some(timeout_val) = check_timeout(&response)? {
                 if timeout_val.is_truthy() {
                     abort_controller.abort();
-                    web_sys::console::log_1(
+                    console::log_1(
                         &format!(
                             "URL: {}",
                             config.url.replace("http://gitlab.staff.xdf.cn/api/v4/", "")
@@ -317,8 +319,8 @@ async fn handle_response(
 // 辅助函数：检查是否超时
 fn check_timeout(response: &JsValue) -> Result<Option<JsValue>, JsValue> {
     if response.is_object() {
-        let timeout_obj = js_sys::Object::from(response.clone());
-        if let Ok(timeout_val) = js_sys::Reflect::get(&timeout_obj, &"timeout".into()) {
+        let timeout_obj = Object::from(response.clone());
+        if let Ok(timeout_val) = Reflect::get(&timeout_obj, &"timeout".into()) {
             return Ok(Some(timeout_val));
         }
     }
@@ -328,7 +330,7 @@ fn check_timeout(response: &JsValue) -> Result<Option<JsValue>, JsValue> {
 // 添加一个辅助函数来创建延迟
 async fn delay(ms: i32) {
     let promise = Promise::new(&mut |resolve, _| {
-        web_sys::window()
+        window()
             .unwrap()
             .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, ms)
             .unwrap();
@@ -343,14 +345,14 @@ pub async fn fetch_with_retry(
   context: &JsValue,
   failure_stats: &Arc<Mutex<Vec<FailureRecord>>>,
 ) -> Result<JsValue, JsValue> {
-  let details = js_sys::Reflect::get(context, &"details".into())?;
-  let operation = js_sys::Reflect::get(&details, &"operation".into())?
+  let details = Reflect::get(context, &"details".into())?;
+  let operation = Reflect::get(&details, &"operation".into())?
       .as_string()
       .unwrap_or_default();
-  let project_name = js_sys::Reflect::get(&details, &"projectName".into())
+  let project_name = Reflect::get(&details, &"projectName".into())
       .ok()
       .and_then(|v| v.as_string());
-  let author = js_sys::Reflect::get(&details, &"authorEmail".into())
+  let author = Reflect::get(&details, &"authorEmail".into())
       .ok()
       .and_then(|v| v.as_string());
 
@@ -367,13 +369,13 @@ pub async fn fetch_with_retry(
   loop {
       let (request, abort_controller) = build_request(&config)?;
 
-      let start_time = js_sys::Date::now();
+      let start_time = Date::now();
 
       // 创建超时 Promise
       let timeout_promise = Promise::new(&mut |resolve, _reject| {
-          let window = web_sys::window().unwrap();
-          let timeout_value = js_sys::Object::new();
-          js_sys::Reflect::set(&timeout_value, &"timeout".into(), &JsValue::TRUE).unwrap();
+          let window = window().unwrap();
+          let timeout_value = Object::new();
+          Reflect::set(&timeout_value, &"timeout".into(), &JsValue::TRUE).unwrap();
           window
               .set_timeout_with_callback_and_timeout_and_arguments_1(
                   &resolve,
@@ -383,7 +385,7 @@ pub async fn fetch_with_retry(
               .unwrap();
       });
 
-      let fetch_promise = web_sys::window().unwrap().fetch_with_request(&request);
+      let fetch_promise = window().unwrap().fetch_with_request(&request);
       let race_promise = Promise::race(&Array::of2(&fetch_promise, &timeout_promise));
 
       match handle_response(
@@ -421,7 +423,7 @@ pub async fn analyze_gitlab_projects(config: JsValue) -> Result<JsValue, JsValue
 
     // 获取项目列表
     let projects = get_group_projects(&config, &failure_stats).await?;
-    web_sys::console::log_1(&format!("[获取项目成功] 本次分析 {} 个项目", projects.len()).into());
+    console::log_1(&format!("[获取项目成功] 本次分析 {} 个项目", projects.len()).into());
 
     // 过滤排除的项目
     let filtered_projects: Vec<_> = projects
@@ -449,7 +451,7 @@ pub async fn analyze_gitlab_projects(config: JsValue) -> Result<JsValue, JsValue
     let author_stats = author_stats.lock().unwrap();
     let failure_stats = failure_stats.lock().unwrap();
     let report = generate_report(&author_stats, &failure_stats, &config);
-    web_sys::console::log_1(&format!("[生成报告成功！]").into());
+    console::log_1(&format!("[生成报告成功！]").into());
     Ok(serde_wasm_bindgen::to_value(&report)?)
 }
 
@@ -458,17 +460,17 @@ async fn get_group_projects(
     config: &Config,
     failure_stats: &Arc<Mutex<Vec<FailureRecord>>>,
 ) -> Result<Vec<Project>, JsValue> {
-    web_sys::console::log_1(&format!("开始获取项目...").into());
+    console::log_1(&format!("开始获取项目...").into());
     let url = format!(
         "{}/groups/{}/projects?per_page={}&include_subgroups=true&order_by=last_activity_at&sort=desc",
         config.gitlab_api, config.group_id, config.projects_num
     );
 
-    let context = js_sys::Object::new();
-    js_sys::Reflect::set(&context, &"type".into(), &"projects".into())?;
-    let details = js_sys::Object::new();
-    js_sys::Reflect::set(&details, &"operation".into(), &"获取项目列表...".into())?;
-    js_sys::Reflect::set(&context, &"details".into(), &details)?;
+    let context = Object::new();
+    Reflect::set(&context, &"type".into(), &"projects".into())?;
+    let details = Object::new();
+    Reflect::set(&details, &"operation".into(), &"获取项目列表...".into())?;
+    Reflect::set(&context, &"details".into(), &details)?;
 
     let response = fetch_with_retry(&url, &config.gitlab_token, &context, failure_stats).await?;
     let projects: Vec<Project> = serde_wasm_bindgen::from_value(response)?;
@@ -483,7 +485,7 @@ async fn process_project(
     author_stats: &Arc<Mutex<HashMap<String, AuthorStats>>>,
     failure_stats: &Arc<Mutex<Vec<FailureRecord>>>,
 ) -> Result<(), JsValue> {
-    web_sys::console::log_1(&format!("开始分析项目... {}", project.name).into());
+    console::log_1(&format!("开始分析项目... {}", project.name).into());
     let commits = get_project_commit_stats(
         project.id,
         &config.start_date,
@@ -509,7 +511,7 @@ async fn process_project(
 
         futures::future::join_all(futures).await;
     }
-    web_sys::console::log_1(&format!("[分析项目{}完成]", project.name).into());
+    console::log_1(&format!("[分析项目{}完成]", project.name).into());
 
     Ok(())
 }
@@ -532,12 +534,12 @@ async fn get_project_commit_stats(
             config.gitlab_api, project_id, since, until, page
         );
 
-        let context = js_sys::Object::new();
-        js_sys::Reflect::set(&context, &"type".into(), &"commits".into())?;
-        let details = js_sys::Object::new();
-        js_sys::Reflect::set(&details, &"projectName".into(), &project_name.into())?;
-        js_sys::Reflect::set(&details, &"operation".into(), &"获取提交记录".into())?;
-        js_sys::Reflect::set(&context, &"details".into(), &details)?;
+        let context = Object::new();
+        Reflect::set(&context, &"type".into(), &"commits".into())?;
+        let details = Object::new();
+        Reflect::set(&details, &"projectName".into(), &project_name.into())?;
+        Reflect::set(&details, &"operation".into(), &"获取提交记录".into())?;
+        Reflect::set(&context, &"details".into(), &details)?;
 
         let response =
             fetch_with_retry(&url, &config.gitlab_token, &context, failure_stats).await?;
@@ -655,13 +657,13 @@ async fn analyze_commit_diffs(
         config.gitlab_api, project_id, commit_sha
     );
 
-    let context = js_sys::Object::new();
-    js_sys::Reflect::set(&context, &"type".into(), &"diffs".into())?;
-    let details = js_sys::Object::new();
-    js_sys::Reflect::set(&details, &"projectName".into(), &project_name.into())?;
-    js_sys::Reflect::set(&details, &"authorEmail".into(), &author_email.into())?;
-    js_sys::Reflect::set(&details, &"operation".into(), &"获取提交差异".into())?;
-    js_sys::Reflect::set(&context, &"details".into(), &details)?;
+    let context = Object::new();
+    Reflect::set(&context, &"type".into(), &"diffs".into())?;
+    let details = Object::new();
+    Reflect::set(&details, &"projectName".into(), &project_name.into())?;
+    Reflect::set(&details, &"authorEmail".into(), &author_email.into())?;
+    Reflect::set(&details, &"operation".into(), &"获取提交差异".into())?;
+    Reflect::set(&context, &"details".into(), &details)?;
 
     let response = fetch_with_retry(&url, &config.gitlab_token, &context, failure_stats).await?;
     let diffs: Vec<DiffInfo> = serde_wasm_bindgen::from_value(response)?;
@@ -720,17 +722,17 @@ async fn get_commit_branches(
         config.gitlab_api, project_id, commit_sha
     );
 
-    let context = js_sys::Object::new();
-    js_sys::Reflect::set(&context, &"type".into(), &"refs".into())?;
-    let details = js_sys::Object::new();
-    js_sys::Reflect::set(&details, &"projectName".into(), &project_name.into())?;
-    js_sys::Reflect::set(&details, &"authorEmail".into(), &author_email.into())?;
-    js_sys::Reflect::set(
+    let context = Object::new();
+    Reflect::set(&context, &"type".into(), &"refs".into())?;
+    let details = Object::new();
+    Reflect::set(&details, &"projectName".into(), &project_name.into())?;
+    Reflect::set(&details, &"authorEmail".into(), &author_email.into())?;
+    Reflect::set(
         &details,
         &"operation".into(),
         &"获取提交对应的分支信息".into(),
     )?;
-    js_sys::Reflect::set(&context, &"details".into(), &details)?;
+    Reflect::set(&context, &"details".into(), &details)?;
 
     let response = fetch_with_retry(&url, &config.gitlab_token, &context, failure_stats).await?;
     let refs: Vec<RefInfo> = serde_wasm_bindgen::from_value(response)?;

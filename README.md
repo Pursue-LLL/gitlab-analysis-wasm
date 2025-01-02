@@ -164,4 +164,17 @@ npm run serve
 分析提交记录
 ![image-2.png](https://s2.loli.net/2024/12/05/HzIRdYKPZSquT3U.png)
 
+## 注意事项
 
+- 在vite中使用时不要预构建，否则会报错
+
+参照：<https://github.com/Menci/vite-plugin-wasm>
+
+```js
+  // vite.config.js
+optimizeDeps: {
+  exclude: ['@gogors/gitlab-analysis-wasm'],
+  },
+```
+
+- 不支持nodejs
