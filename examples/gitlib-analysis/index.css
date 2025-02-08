@@ -1,0 +1,245 @@
+.container {
+  min-height: 100vh;
+  padding: 24px;
+  background-image: linear-gradient(135deg, #096dd940 0%, #ff181840 100%);
+}
+
+.formWrapper {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.formCard {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+}
+
+.formCard h2 {
+  margin-bottom: 32px;
+  font-weight: bold;
+  color: transparent;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+  background: linear-gradient(135deg, #096dd9 0%, #ff1818 100%);
+  background-clip: text;
+  background-clip: text;
+}
+
+.formCard .ant-form-item-label {
+  font-weight: 500;
+}
+
+.formCard .ant-input,
+.formCard .ant-select-selector,
+.formCard .ant-picker {
+  border-radius: 6px;
+}
+
+.formCard .ant-input:hover,
+.formCard .ant-select-selector:hover,
+.formCard .ant-picker:hover {
+  border-color: #1890ff;
+}
+
+.formCard .ant-input:focus,
+.formCard .ant-select-selector:focus,
+.formCard .ant-picker-focused {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, .2);
+}
+
+.submitButton {
+  height: 40px;
+  margin-top: 16px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #ff1818 0%, #096dd9 100%);
+  border: none;
+  border-radius: 6px;
+  transition: all .3s ease;
+}
+
+.submitButton:hover {
+  box-shadow: 0 4px 12px rgba(24, 144, 255, .3);
+  transform: translateY(-1px);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+}
+
+.tableCard {
+  margin-top: 24px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+}
+
+.tableCard .ant-table-thead>tr>th {
+  background-color: #fafafa;
+}
+
+.logCard {
+  margin-top: 16px;
+  background: #1e1e1e !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+}
+
+.logCard .ant-card-head {
+  background: #2d2d2d;
+  border-bottom: 1px solid #333;
+  border-radius: 8px 8px 0 0;
+}
+
+.logCard .ant-card-head-title {
+  color: #fff !important;
+}
+
+.logCard .ant-btn-link {
+  color: #fff !important;
+}
+
+.logCard .ant-btn-link:hover {
+  color: #1890ff !important;
+}
+
+.logContainer {
+  height: 300px;
+  padding: 12px;
+  overflow-y: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  background: #1e1e1e;
+  border-radius: 0 0 8px 8px;
+}
+
+.logLine {
+  margin-bottom: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #a0a0a0;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.logLine:hover {
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+
+.logLine[class*='INFO'] {
+  color: #4ec9b0;
+}
+
+.errorLog {
+  color: #f14c4c !important;
+}
+
+.emptyLog {
+  padding: 16px;
+  font-family: inherit;
+  color: #666;
+  text-align: center;
+}
+
+.logContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.logContainer::-webkit-scrollbar-track {
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+
+.logContainer::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.logContainer::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+.logLine::before {
+  margin-right: 8px;
+  color: #666;
+  content: '$ ';
+}
+
+.logContainer::after {
+  font-size: 14px;
+  color: #4ec9b0;
+  content: '█';
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .formWrapper {
+    max-width: 100%;
+  }
+
+  .container {
+    padding: 16px;
+  }
+}
+
+.code-stats-table .ant-table-row-level-0 {
+  background-color: #e3f6ff30;
+}
+
+.code-stats-table .ant-table-row-level-0 td {
+  font-weight: bold;
+}
+
+.code-stats-table .ant-table-row-level-1 {
+  background-color: #fff;
+}
+
+.code-stats-table .ant-table-cell {
+  padding: 12px 16px !important;
+}
+
+.code-stats-table .ant-table-row:hover>td {
+  background-color: #f0f5ff !important;
+}
+
+/* 添加 footer 样式 */
+.footer {
+  padding: 24px 0;
+  margin-top: 24px;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  background: rgba(255, 255, 255, .5);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+}
+
+.footer .ant-tag {
+  margin: 0 4px;
+  font-weight: 500;
+  color: #666;
+}
+
+.footer a {
+  color: #096dd9;
+  text-decoration: none;
+  transition: color .3s ease;
+}
+
+.footer a:hover {
+  color: #e6d6f9;
+  text-decoration: underline;
+}

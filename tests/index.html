@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>GitLab Analysis WASM Test</title>
+  <style>
+    #output {
+      white-space: pre-wrap;
+      font-family: monospace;
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin: 10px;
+      max-height: 500px;
+      overflow: auto;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .loading {
+      color: blue;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>GitLab Analysis WASM Test</h1>
+  <button id="startAnalysis">Start Analysis</button>
+  <div id="output"></div>
+
+  <script type="module">
+    import init, { analyze_gitlab_projects } from '../pkg/web/gitlab_analysis_wasm.js';
+
+    const config = {
+      gitlab_api: 'https://xxx/api/v4',
+      gitlab_token: "xxx",
+      group_id: '2177',
+      start_date: '2024-11-26',
+      end_date: '2025-01-31',
+      projects_num: 100,
+      excluded_projects: ['project1', 'project2'],
+      valid_extensions: [
+        '.js', '.cjs','.ts', '.jsx', '.tsx', '.css', '.scss',
+        '.sass', '.html', '.sh', '.vue', '.svelte', '.rs'
+      ],
+      max_concurrent_requests: 30,
+      ignored_paths: [
+        "dist", "node_modules/", "build/",
+        ".husky", "lintrc", "public/"
+      ]
+    };
+
+    function log(message, type = 'info') {
+      const output = document.getElementById('output');
+      const div = document.createElement('div');
+      div.className = type;
+      div.textContent = typeof message === 'string' ? message : JSON.stringify(message, null, 2);
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    async function startAnalysis() {
+      try {
+        const button = document.getElementById('startAnalysis');
+        button.disabled = true;
+        log('Initializing WASM module...', 'loading');
+
+        // 初始化 WASM 模块
+        await init();
+        log('WASM module initialized', 'success');
+
+        // 开始分析
+        log('Starting analysis...', 'loading');
+        const startTime = Date.now();
+
+        const result = await analyze_gitlab_projects(config);
+
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000;
+
+        log(`Analysis completed in ${duration.toFixed(2)} seconds`, 'success');
+        log(result);
+
+      } catch (error) {
+        log(`Error: ${error.message}`, 'error');
+        console.error(error);
+      } finally {
+        document.getElementById('startAnalysis').disabled = false;
+      }
+    }
+
+    // 添加按钮点击事件
+    document.getElementById('startAnalysis').addEventListener('click', startAnalysis);
+
+    // 添加控制台输出重定向
+    const originalConsoleLog = console.log;
+    const originalConsoleError = console.error;
+
+    console.log = (...args) => {
+      log(args.join(' '));
+      originalConsoleLog.apply(console, args);
+    };
+
+    console.error = (...args) => {
+      log(args.join(' '), 'error');
+      originalConsoleError.apply(console, args);
+    };
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,73 @@
+# Cargo.toml
+[package]
+name = "gitlab-analysis-wasm"
+version = "1.0.2"
+edition = "2021"
+description = "GitLab analysis tool using WebAssembly"
+keywords = [
+  "gitlab",
+  "gitlab-analysis",
+  "代码统计",
+  "代码分析",
+]
+license = "MIT"
+authors = ["Pursue-LLL <yululiu2018@gmail.com>"]
+repository = "git+https://github.com/Pursue-LLL/gitlab-analysis-wasm.git"
+
+[profile.release]
+# 进行最高级别的优化。编译器会尽可能地优化代码，以生成运行速度最快的二进制文件。这可能会显著增加编译时间，并可能稍微增加二进制文件的大小。通常用于 release 构建
+opt-level = 3
+# true 表示启用链接时优化。LTO 是一种编译器优化技术，它允许编译器在链接阶段对整个程序进行优化，而不仅仅是单个编译单元（例如单个 .rs 文件）。
+# LTO 通常可以生成更小、更快的二进制文件，但会增加编译时间。
+lto = true
+
+# C ABI： 定义了程序在二进制层面进行交互的规则，包括数据类型表示、函数调用约定等。只要不同的编程语言生成的代码都符合 C ABI，它们就可以互相调用，而无需关心彼此使用的具体编程语言或编译器。
+# wasm-bindgen 通过cabi的方式去调用rust按照cabi的规则编译好的二进制.wasm 文件，然后生成js胶水代码以在js中使用
+# 动态链接库更适合跨语言调用
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# 这个库提供了 Rust 和 JavaScript 之间交互的桥梁。它允许你在 Rust 中调用 JavaScript 的 API，以及将 Rust 的函数和数据结构暴露给 JavaScript 使用
+wasm-bindgen = "0.2"
+# 这个库提供了在 Rust 的 Future 和 JavaScript 的 Promise 之间进行转换的功能。它使得在 Rust 中处理异步操作更加方便，可以与 JavaScript 的异步生态系统无缝集成。
+wasm-bindgen-futures = "0.4"
+# 这个库提供了对 JavaScript 内置对象和函数的 Rust 绑定。它允许你直接在 Rust 代码中使用 JavaScript 的全局对象，例如 Date、Math、Array 等。
+js-sys = "0.3"
+# serde 是 Rust 中一个非常流行的序列化和反序列化框架，使得开发者可以轻松地将 Rust 数据结构转换为各种格式（如 JSON、YAML、TOML 等）。features = ["derive"] 启用了 serde 的派生宏，允许你通过简单的注解自动为你的 Rust 结构体和枚举实现序列化和反序列化功能。
+serde = { version = "1.0", features = ["derive"] }
+# 这个库提供了 serde 和 wasm-bindgen 之间的集成。它允许你使用 serde 来序列化和反序列化 Rust 数据结构，并将其与 JavaScript 的对象进行相互转换。
+serde-wasm-bindgen = "0.5"
+# 这个库提供了 Rust 中异步编程的基础设施。它定义了 Future trait，以及用于组合和操作 Future 的工具函数。
+futures = "0.3"
+# 当你需要在 Rust 代码中进行文本的模式匹配、查找、替换等操作时，可以使用 regex 库。
+regex = "1.5"
+# 这个库提供了 OnceCell 和 Lazy 类型，用于实现安全的、线程安全的延迟初始化。
+once_cell = "1.8"
+# 提供对浏览器 Web API 的访问，例如 DOM 操作、Fetch API、WebGL 等。它允许你使用 Rust 代码与浏览器环境进行交互。因此，web-sys 的代码严重依赖于 window 对象以及其他浏览器特有的全局对象和 API。
+web-sys = { version = "0.3", features = [
+    "Headers",
+    "Request",
+    "RequestInit",
+    "RequestMode",
+    "Response",
+    "Window",
+    "console",
+    "AbortController",
+    "AbortSignal"
+]}
+
+[features]
+default = ["browser"]
+browser = []
+node = []
+
+# 添加 wasm-pack 的配置
+[package.metadata.wasm-pack.profile.release]
+# 打包优化配置，无需改动，-O4 表示最高级别优化，--enable-bulk-memory 表示启用大内存优化
+wasm-opt = ["-O4", "--enable-bulk-memory"]
+
+# 配置编译器lint规则
+[lints.rust]
+# 忽略wasm_bindgen_unstable_test_coverage的警告
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(wasm_bindgen_unstable_test_coverage)'] }

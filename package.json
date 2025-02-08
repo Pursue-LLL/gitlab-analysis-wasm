@@ -1,0 +1,36 @@
+{
+  "name": "@gogors/gitlab-analysis-wasm",
+  "version": "1.0.0",
+  "description": "GitLab analysis tool using WebAssembly",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test:html": "http-server . -p 8080 -o /tests/index.html"
+  },
+  "main": "./pkg/bundler/gitlab_analysis_wasm.js",
+  "unpkg": "./pkg/no-modules/gitlab_analysis_wasm.js",
+  "exports": {
+    ".": {
+      "import": "./pkg/bundler/gitlab_analysis_wasm.js",
+      "browser": "./pkg/bundler/gitlab_analysis_wasm.js",
+      "default": "./pkg/bundler/gitlab_analysis_wasm.js"
+    }
+  },
+  "files": [
+    "pkg/**/*"
+  ],
+  "keywords": [
+    "gitlab",
+    "gitlab-analysis",
+    "代码统计",
+    "代码分析"
+  ],
+  "author": "Pursue-LLL <yululiu2018@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pursue-LLL/gitlab-analysis-wasm.git"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
