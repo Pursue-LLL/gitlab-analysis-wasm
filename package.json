@@ -1,6 +1,6 @@
 {
   "name": "@gogors/gitlab-analysis-wasm",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "GitLab analysis tool using WebAssembly",
   "type": "module",
   "scripts": {
@@ -14,7 +14,8 @@
       "import": "./pkg/bundler/gitlab_analysis_wasm.js",
       "browser": "./pkg/bundler/gitlab_analysis_wasm.js",
       "default": "./pkg/bundler/gitlab_analysis_wasm.js"
-    }
+    },
+    "./pkg/*": "./pkg/*"
   },
   "files": [
     "pkg/**/*"
